@@ -54,10 +54,11 @@ export const handleVideo = async (ctx: Context) => {
             await ctx.api.editMessageText(
                 ctx.chat!.id,
                 processingMsg.message_id,
-                `🎥 *Update from ${username}*\n\n` +
+                `🎥 *Video Update from ${username}*\n\n` +
+                `🏷️ *Category:* #${topic}\n` +
                 `📋 *Summary:* ${summary}\n\n` +
                 `📝 *Transcript:*\n"${transcript}"\n\n` +
-                `🔗 [View Update](${config.FRONTEND_URL}/dashboard/updates/${updateId})`,
+                `🔗 [View Details](${config.FRONTEND_URL}/dashboard/updates/${updateId})`,
                 { parse_mode: 'Markdown' }
             );
 

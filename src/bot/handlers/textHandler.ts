@@ -52,8 +52,9 @@ export const handleTextMention = async (ctx: Context) => {
                 ctx.chat!.id,
                 processingMsg.message_id,
                 `📝 *Text Update from ${username}*\n\n` +
+                `🏷️ *Category:* #${topic}\n` +
                 `📋 *Summary:* ${summary}\n\n` +
-                `🔗 [View Update](${config.FRONTEND_URL}/dashboard/updates/${updateId})`,
+                `🔗 [View Details](${config.FRONTEND_URL}/dashboard/updates/${updateId})`,
                 { parse_mode: 'Markdown' }
             );
 
