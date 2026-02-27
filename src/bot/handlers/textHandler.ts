@@ -8,7 +8,12 @@ export const handleTextMention = async (ctx: Context) => {
     if (!text) return;
 
     const botUsername = ctx.me.username;
-    if (!text.toLowerCase().includes(`@${botUsername.toLowerCase()}`)) return;
+    // Case-insensitive regex to find the mention
+    const mentionRegex = new RegExp(`@${botUsername}`, 'gi');
+
+    if (!mentionRegex.test(text)) {
+        return;
+    }
 
     // Provide immediate feedback
     const processingMsg = await ctx.reply("✍️ Recording your text update...", {
@@ -16,8 +21,9 @@ export const handleTextMention = async (ctx: Context) => {
     });
 
     try {
+        console.log(`🔍 Processing mention for @${botUsername} from ${ctx.from?.username || ctx.from?.id}`);
         // Remove the mention from the text to get the actual update
-        const cleanText = text.replace(`@${botUsername}`, '').trim();
+        const cleanText = text.replace(mentionRegex, '').trim();
 
         if (!cleanText) {
             return await ctx.api.editMessageText(

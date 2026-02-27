@@ -24,8 +24,10 @@ export const startBot = () => {
     bot.on('message:video_note', handleVideo); // Circular video messages
 
     // Handle @mentions in text or captions
-    bot.on('message:text', handleTextMention);
-    bot.on('message:caption', handleTextMention);
+    bot.on(['message:text', 'message:caption'], (ctx) => {
+        console.log(`📥 Incoming ${ctx.message?.text ? 'text' : 'caption'} update from ${ctx.from?.username || ctx.from?.id}`);
+        return handleTextMention(ctx);
+    });
 
     // Error Handling
     bot.catch((err) => {
