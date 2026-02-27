@@ -1,7 +1,7 @@
 import { Context } from 'grammy';
 import { transcribeAudio } from '../services/transcriber';
 import { summarize } from '../services/summarizer';
-import { downloadFile, deleteFile } from '../services/fileManager';
+import { downloadFile, deleteFile, extractAudio } from '../services/fileManager';
 import apiClient from '../apiClient';
 import { config } from '../config';
 
@@ -18,16 +18,21 @@ export const handleVideo = async (ctx: Context) => {
     });
 
     let filePath: string | null = null;
+    let audioPath: string | null = null;
 
     try {
         const file = await ctx.api.getFile(fileId);
         const fileUrl = `https://api.telegram.org/file/bot${config.TELEGRAM_BOT_TOKEN}/${file.file_path}`;
 
-        // 1. Download
+        // 1. Download Video
         filePath = await downloadFile(fileUrl, fileName);
 
-        // 2. Transcribe
-        const transcript = await transcribeAudio(filePath);
+        // 2. Extract Audio
+        console.log(`🎬 Extracting audio from video: ${filePath}`);
+        audioPath = await extractAudio(filePath);
+
+        // 3. Transcribe Audio
+        const transcript = await transcribeAudio(audioPath);
 
         // 3. Summarize
         const { summary, topic } = await summarize(transcript);
@@ -99,6 +104,9 @@ export const handleVideo = async (ctx: Context) => {
         // Cleanup
         if (filePath) {
             deleteFile(filePath);
+        }
+        if (audioPath) {
+            deleteFile(audioPath);
         }
     }
 };
