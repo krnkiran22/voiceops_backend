@@ -36,8 +36,13 @@ Return ONLY a valid JSON object:
 export async function summarize(transcript: string): Promise<{ summary: string; topic: string }> {
     try {
         return await aiManager.execute(async (client) => {
+            const isGroq = client.apiKey.startsWith('gsk_');
+            const model = isGroq ? 'llama-3.3-70b-versatile' : 'gpt-4o';
+
+            console.log(`🧠 Summarizing with ${isGroq ? 'Groq' : 'OpenAI'} (${model})...`);
+
             const response = await client.chat.completions.create({
-                model: config.AI_MODEL,
+                model: model,
                 messages: [
                     { role: 'system', content: SYSTEM_PROMPT },
                     { role: 'user', content: transcript }
@@ -46,7 +51,11 @@ export async function summarize(transcript: string): Promise<{ summary: string; 
                 response_format: { type: 'json_object' }
             });
 
-            const raw = response.choices[0].message.content ?? '{}';
+            let raw = response.choices[0].message.content ?? '{}';
+
+            // Cleanup: Remove markdown backticks if they exist
+            raw = raw.replace(/```json/g, '').replace(/```/g, '').trim();
+
             return JSON.parse(raw);
         });
     } catch (error) {

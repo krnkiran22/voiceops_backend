@@ -6,10 +6,13 @@ class AIClientManager {
     private currentKeyIndex: number = 0;
 
     constructor() {
-        this.clients = config.AI_API_KEYS.map(key => new OpenAI({
-            apiKey: key,
-            baseURL: config.AI_BASE_URL,
-        }));
+        this.clients = config.AI_API_KEYS.map(key => {
+            const isGroq = key.startsWith('gsk_');
+            return new OpenAI({
+                apiKey: key,
+                baseURL: isGroq ? 'https://api.groq.com/openai/v1' : undefined,
+            });
+        });
     }
 
     async execute<T>(fn: (client: OpenAI) => Promise<T>): Promise<T> {
@@ -26,19 +29,23 @@ class AIClientManager {
             this.currentKeyIndex = index;
 
             try {
-                console.log(`Using AI API key index: ${index}`);
-                return await fn(this.clients[index]);
+                console.log(`🤖 AI Request [index ${index}]: Starting... (Model: ${config.AI_MODEL})`);
+                const result = await fn(this.clients[index]);
+                console.log(`✅ AI Request [index ${index}]: Success.`);
+                return result;
             } catch (error: any) {
-                console.error(`AI Request failed with key index ${index}:`, error.message);
+                console.error(`❌ AI Request [index ${index}]: Failed!`);
+                console.error(`   Error: ${error.message}`);
+                if (error.response) {
+                    console.error(`   Status: ${error.response.status}`);
+                    console.error(`   Data:`, JSON.stringify(error.response.data));
+                }
                 lastError = error;
-
-                // If it's a rate limit or server error, continue to next key
-                // Otherwise, if it's a structural error (e.g. invalid request), maybe throw immediately
-                // But for rotation, we generally want to try the next key
                 continue;
             }
         }
 
+        console.error('🛑 All AI Providers failed.');
         throw lastError || new Error('All AI API keys failed');
     }
 
