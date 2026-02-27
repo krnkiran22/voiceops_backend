@@ -39,8 +39,16 @@ export const createUpdate = asyncHandler(async (req: Request, res: Response) => 
 });
 
 export const getUpdates = asyncHandler(async (req: Request, res: Response) => {
-    const { search, topic, from, to, page = '1', limit = '10' } = req.query;
-    const query: any = { userId: req.user?.userId };
+    const { search, topic, from, to, page = '1', limit = '10', userId } = req.query;
+
+    let query: any = {};
+
+    // Admins can filter by userId, otherwise users only see their own
+    if (req.user?.role === 'admin' && userId) {
+        query.userId = userId;
+    } else {
+        query.userId = req.user?.userId;
+    }
 
     if (search) {
         query.$text = { $search: search as string };
@@ -75,13 +83,20 @@ export const getUpdates = asyncHandler(async (req: Request, res: Response) => {
 });
 
 export const getUpdateById = asyncHandler(async (req: Request, res: Response) => {
-    const update = await Update.findOne({ _id: req.params.id, userId: req.user?.userId });
+    let query: any = { _id: req.params.id };
+
+    if (req.user?.role !== 'admin') {
+        query.userId = req.user?.userId;
+    }
+
+    const update = await Update.findOne(query);
     if (!update) {
         res.status(404);
         throw new Error('Update not found');
     }
     res.json(update);
 });
+
 
 export const deleteUpdate = asyncHandler(async (req: Request, res: Response) => {
     const update = await Update.findOneAndDelete({ _id: req.params.id, userId: req.user?.userId });
