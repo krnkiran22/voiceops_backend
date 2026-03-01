@@ -7,7 +7,7 @@ export const createUpdate = asyncHandler(async (req: Request, res: Response) => 
     const {
         telegramUserId, telegramMessageId, telegramChatId, mediaType,
         transcript, summary, topic, durationSeconds, senderName,
-        senderTelegramUsername
+        senderTelegramUsername, reportType
     } = req.body;
 
     const user = await User.findOne({ telegramUserId });
@@ -34,6 +34,7 @@ export const createUpdate = asyncHandler(async (req: Request, res: Response) => 
         transcript,
         summary,
         topic,
+        reportType,
         durationSeconds,
         senderName,
         senderTelegramUsername

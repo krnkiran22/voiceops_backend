@@ -33,17 +33,23 @@ export const handleTextMention = async (ctx: Context) => {
             );
         }
 
-        // 1. Summarize the text update
+        // 1. Detect Special Identifiers (#R for Report, #H for Hourly)
+        let reportType: 'regular' | 'hourly' | 'report' = 'regular';
+        if (cleanText.includes('#R')) reportType = 'report';
+        else if (cleanText.includes('#H')) reportType = 'hourly';
+
+        // 2. Summarize the text update
         const { summary, topic } = await summarize(cleanText);
 
-        // 2. Save to Backend
+        // 3. Save to Backend
         try {
             const response = await apiClient.post('/api/updates', {
                 telegramUserId: String(ctx.from?.id),
                 telegramMessageId: String(ctx.message?.message_id),
                 telegramChatId: String(ctx.chat?.id),
                 mediaType: 'text',
-                transcript: cleanText, // For text, transcript is the clean text
+                reportType,
+                transcript: cleanText,
                 summary,
                 topic,
                 senderName: ctx.from?.first_name || 'Unknown',

@@ -31,13 +31,24 @@ export const handleVoice = async (ctx: Context) => {
         // 3. Summarize
         const { summary, topic } = await summarize(transcript);
 
-        // 4. Save to Backend
+        // 4. Detect Special Identifiers in transcript or caption
+        const caption = ctx.message?.caption || '';
+        let reportType: 'regular' | 'hourly' | 'report' = 'regular';
+
+        if (caption.includes('#R') || transcript.includes('#R') || transcript.includes('report') || transcript.includes('Report')) {
+            reportType = 'report';
+        } else if (caption.includes('#H') || transcript.includes('#H')) {
+            reportType = 'hourly';
+        }
+
+        // 5. Save to Backend
         try {
             const response = await apiClient.post('/api/updates', {
                 telegramUserId: String(ctx.from?.id),
                 telegramMessageId: String(ctx.message.message_id),
                 telegramChatId: String(ctx.chat?.id),
                 mediaType: 'voice',
+                reportType,
                 transcript,
                 summary,
                 topic,

@@ -8,6 +8,7 @@ export interface IUpdate extends Document {
     transcript: string;
     summary: string;
     topic: string;
+    reportType: 'regular' | 'hourly' | 'report';
     durationSeconds?: number;
     senderName: string;
     senderTelegramUsername?: string;
@@ -20,6 +21,7 @@ const UpdateSchema = new Schema<IUpdate>({
     telegramMessageId: { type: String, required: true },
     telegramChatId: { type: String, required: true },
     mediaType: { type: String, enum: ['voice', 'video', 'text'], required: true },
+    reportType: { type: String, enum: ['regular', 'hourly', 'report'], default: 'regular' },
     transcript: { type: String, required: true },
     summary: { type: String, required: true },
     topic: { type: String, default: 'update' },

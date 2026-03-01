@@ -37,13 +37,20 @@ export const handleVideo = async (ctx: Context) => {
         // 3. Summarize
         const { summary, topic } = await summarize(transcript);
 
-        // 4. Save to Backend
+        // 4. Detect Special Identifiers in caption
+        const caption = ctx.message?.caption || '';
+        let reportType: 'regular' | 'hourly' | 'report' = 'regular';
+        if (caption.includes('#R')) reportType = 'report';
+        else if (caption.includes('#H')) reportType = 'hourly';
+
+        // 5. Save to Backend
         try {
             const response = await apiClient.post('/api/updates', {
                 telegramUserId: String(ctx.from?.id),
                 telegramMessageId: String(ctx.message?.message_id),
                 telegramChatId: String(ctx.chat?.id),
                 mediaType: 'video',
+                reportType,
                 transcript,
                 summary,
                 topic,
