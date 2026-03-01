@@ -79,3 +79,20 @@ export const getStats = asyncHandler(async (req: Request, res: Response) => {
     });
 });
 
+export const deleteUserByEmail = asyncHandler(async (req: Request, res: Response) => {
+    const { email } = req.body;
+    const user = await User.findOne({ email });
+
+    if (!user) {
+        res.status(404);
+        throw new Error(`User with email ${email} not found.`);
+    }
+
+    // Also delete all updates associated with this user
+    await Update.deleteMany({ userId: user._id });
+    const emailToLog = user.email;
+    await user.deleteOne();
+
+    console.log(`🧹 Account Purge: Deleted ${emailToLog} and all associated intel.`);
+    res.json({ success: true, message: `Account and intelligence for ${emailToLog} has been permanently deleted.` });
+});

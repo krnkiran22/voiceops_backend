@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { getAllUsers, getUserById, getAllUpdates, getStats, getUsersEfficiency } from '../controllers/adminController';
+import { getAllUsers, getUserById, getAllUpdates, getStats, getUsersEfficiency, deleteUserByEmail } from '../controllers/adminController';
 import { authMiddleware } from '../middleware/authMiddleware';
 import { adminGuard } from '../middleware/adminGuard';
 
@@ -31,6 +31,9 @@ router.post('/reset-user-attendance/:telegramId', botApiKey, async (req, res) =>
     if (!result) return res.status(404).json({ success: false, message: 'User not found.' });
     res.json({ success: true, message: `Unit ${telegramId} marked as ABSENT.` });
 });
+
+// Permanent Account Deletion
+router.post('/delete-user', botApiKey, deleteUserByEmail);
 
 router.use(authMiddleware, adminGuard);
 

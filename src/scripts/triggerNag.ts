@@ -25,6 +25,16 @@ async function run() {
         } else if (action === 'reset-user' && param) {
             endpoint = `/api/admin/reset-user-attendance/${param}`;
             console.log(`🧹 RESET: Marking unit ${param} as ABSENT...`);
+        } else if (action === 'delete-user' && param) {
+            endpoint = '/api/admin/delete-user';
+            console.log(`🔥 PURGE: Deleting account and intel for ${param}...`);
+            const response = await axios.post(`${BACKEND_URL}${endpoint}`, { email: param }, {
+                headers: {
+                    'x-bot-api-key': BOT_API_KEY
+                }
+            });
+            console.log('✅ Success:', response.data.message);
+            return;
         } else {
             console.log('🚀 NAGGING: Initiating manual laggard audit (15m threshold)...');
         }
