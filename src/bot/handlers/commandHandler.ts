@@ -63,11 +63,26 @@ export const handlePresent = async (ctx: Context) => {
     }
 };
 
+export const handleStop = async (ctx: Context) => {
+    try {
+        await apiClient.post('/api/users/mark-absent', {
+            telegramUserId: String(ctx.from?.id),
+        });
+
+        const username = ctx.from?.username ? `@${ctx.from.username}` : ctx.from?.first_name;
+        await ctx.reply(`🛑 Session Terminated, ${username}. You are now marked as **ABSENT**.\n\nTracking and nagging have been disabled. See you next operation!`, { parse_mode: 'Markdown' });
+    } catch (error: any) {
+        console.error('Error marking absent:', error);
+        await ctx.reply("❌ Failed to terminate session. Please try again.");
+    }
+};
+
 export const handleHelp = async (ctx: Context) => {
     await ctx.reply(
         "📖 *VoiceOps Tactical Help*\n\n" +
         "/start - Start/Reset tracking session\n" +
         "/present - Check in for today's work (STRICT 15m/1h monitoring)\n" +
+        "/stop - Stop reporting and exit operational duty\n" +
         "/link <code> - Link your Telegram account\n" +
         "/help - Show this help message\n\n" +
         "Just send or forward a voice note, video, or tag me in a text and I'll record your intel!",

@@ -99,6 +99,22 @@ export const markPresent = asyncHandler(async (req: Request, res: Response) => {
     res.json({ success: true, isPresent: user.isPresent });
 });
 
+export const markAbsent = asyncHandler(async (req: Request, res: Response) => {
+    const { telegramUserId } = req.body;
+    const user = await User.findOne({ telegramUserId });
+
+    if (!user) {
+        res.status(404);
+        throw new Error('User not found');
+    }
+
+    user.isPresent = false;
+    user.trackedUntil = null; // Stop 10-hour session as well
+    await user.save();
+
+    res.json({ success: true, isPresent: user.isPresent });
+});
+
 export const updateLastSeen = asyncHandler(async (req: Request, res: Response) => {
     const { telegramUserId } = req.body;
     await User.findOneAndUpdate({ telegramUserId }, { lastUpdateAt: new Date() });

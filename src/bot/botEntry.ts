@@ -1,7 +1,7 @@
 import { Bot } from 'grammy';
 import { config } from './config';
 import apiClient from './apiClient';
-import { handleStart, handleLink, handleHelp, handlePresent } from './handlers/commandHandler';
+import { handleStart, handleLink, handleHelp, handlePresent, handleStop } from './handlers/commandHandler';
 import { handleVoice } from './handlers/voiceHandler';
 import { handleVideo } from './handlers/videoHandler';
 import { handleTextMention } from './handlers/textHandler';
@@ -22,6 +22,7 @@ export const startBot = () => {
     bot.command('link', handleLink);
     bot.command('help', handleHelp);
     bot.command('present', handlePresent);
+    bot.command('stop', handleStop);
 
     // Media Handlers
     bot.on('message:voice', handleVoice);
