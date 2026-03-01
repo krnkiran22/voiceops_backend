@@ -52,60 +52,60 @@ export const initMonitoring = (bot: Bot) => {
 
 export async function checkLaggards(thresholdMinutes: number) {
     console.log('!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!');
-    console.log('📡 AUDITOR: STARTING INTELLIGENCE SCAN...');
+    console.log('📡 AUDITOR (V5): STARTING INTELLIGENCE SCAN...');
     console.log('!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!');
 
     if (!botInstance || !config.MONITORING_GROUP_ID) {
-        console.error('❌ AUDITOR FAILURE: Bot or Group ID missing!');
-        console.log(`   - Bot Instance: ${!!botInstance}`);
-        console.log(`   - Group ID: ${config.MONITORING_GROUP_ID}`);
+        console.error('❌ AUDITOR FAILURE (V5): Bot or Group ID missing!');
         return;
     }
 
-    // TEST HEARTBEAT: Confirm bot can speak to the group
-    if (thresholdMinutes === 0) {
-        console.log('💓 Sending Test Heartbeat to group...');
-        await botInstance.api.sendMessage(config.MONITORING_GROUP_ID, "📡 **AUDITOR HEARTBEAT**: Manual trigger received. System is online.", { parse_mode: 'Markdown' }).catch(err => {
-            console.error('❌ Heartbeat Failed:', err.message);
-        });
-    }
+    const now = new Date();
+    const thresholdDate = new Date(now.getTime() - thresholdMinutes * 60 * 1000);
 
-    const thresholdDate = new Date(Date.now() - thresholdMinutes * 60 * 1000);
-    console.log(`🔍 LOGIC: Looking for units with no signal since ${thresholdDate.toISOString()}`);
+    console.log(`⏱️ SCAN TIME: ${now.toISOString()}`);
+    console.log(`🔍 THRESHOLD (${thresholdMinutes}m): Updates before ${thresholdDate.toISOString()} are laggards.`);
 
     try {
-        // Find users who are present today but haven't updated in X minutes
-        const query = {
-            isPresent: true,
-            $or: [
-                { lastUpdateAt: { $lt: thresholdDate } },
-                { lastUpdateAt: null }
-            ]
-        };
-        console.log('🧪 Running Query:', JSON.stringify(query));
-        const laggards = await User.find(query);
+        const activeUsers = await User.find({ isPresent: true });
+        console.log(`📊 ACTIVE UNITS: ${activeUsers.length}`);
 
-        console.log(`📈 Active units in sector: ${await User.countDocuments({ isPresent: true })}`);
-        console.log(`📉 Delinquent units found: ${laggards.length}`);
+        const laggards = [];
+
+        for (const u of activeUsers) {
+            const lastUpdate = u.lastUpdateAt ? u.lastUpdateAt.toISOString() : 'NEVER';
+            const isLaggard = !u.lastUpdateAt || u.lastUpdateAt < thresholdDate;
+
+            console.log(`👤 UNIT: ${u.name} | LAST SIGNAL: ${lastUpdate} | LAGGARD: ${isLaggard}`);
+
+            if (isLaggard) {
+                laggards.push(u);
+            }
+        }
 
         if (laggards.length === 0) {
-            console.log('✅ All present units are reporting correctly.');
+            console.log('✅ AUDIT COMPLETE: All present units are within SOP parameters.');
             return;
         }
 
         const mentions = laggards.map(u => {
             if (u.telegramUsername) return `@${u.telegramUsername}`;
-            if (u.telegramUserId) return `[${u.name}](tg://user?id=${u.telegramUserId})`;
+            if (u.telegramUserId) return `<b>${u.name}</b>`;
             return u.name;
         }).join(', ');
+
         const joke = JOKES[Math.floor(Math.random() * JOKES.length)];
+        const message = `⚠️ <b>INTEL GAP DETECTED</b>\n\nAttention ${mentions}:\n\n<i>"${joke}"</i>\n\nStatus: overdue by ${thresholdMinutes}m. Report in immediately! 🚨`;
 
-        const message = `⚠️ **INTEL GAP DETECTED**\n\nAttention ${mentions}:\n\n"${joke}"\n\nStatus: overdue by ${thresholdMinutes}m. Report in immediately! 🚨`;
+        console.log(`📢 DISPATCHING NAG: To ${laggards.length} units...`);
 
-        await botInstance.api.sendMessage(config.MONITORING_GROUP_ID, message, { parse_mode: 'Markdown' });
-        console.log(`📢 Sent nag message to ${laggards.length} units.`);
+        await botInstance.api.sendMessage(config.MONITORING_GROUP_ID, message, { parse_mode: 'HTML' }).then(() => {
+            console.log('✅ DISPATCH SUCCESSFUL.');
+        }).catch(err => {
+            console.error('❌ DISPATCH FAILED:', err.message);
+        });
 
     } catch (error) {
-        console.error('Error during laggard check:', error);
+        console.error('💣 AUDIT CRASHED:', error);
     }
 }
