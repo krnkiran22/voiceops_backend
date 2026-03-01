@@ -31,6 +31,7 @@ export const startBot = () => {
     // Generic activity tracker (ensure any message resets the 15m timer)
     bot.on(['message:text', 'message:caption', 'message:voice', 'message:video', 'message:video_note'], async (ctx, next) => {
         try {
+            console.log(`📍 Incoming Signal | Chat ID: ${ctx.chat.id} | From: ${ctx.from?.username || ctx.from?.id}`);
             // Background call to update last seen without blocking
             apiClient.post('/api/users/update-last-seen', {
                 telegramUserId: String(ctx.from?.id),
