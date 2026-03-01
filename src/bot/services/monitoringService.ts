@@ -50,13 +50,14 @@ export const initMonitoring = (bot: Bot) => {
     });
 };
 
-async function checkLaggards(thresholdMinutes: number) {
+export async function checkLaggards(thresholdMinutes: number) {
     if (!botInstance || !config.MONITORING_GROUP_ID) {
-        console.warn('⚠️ Monitoring skipped: Bot or Group ID missing.');
+        console.warn(`⚠️ Monitoring skipped: BotInstance: ${!!botInstance}, GroupID: ${config.MONITORING_GROUP_ID}`);
         return;
     }
 
     const thresholdDate = new Date(Date.now() - thresholdMinutes * 60 * 1000);
+    console.log(`🔍 Auditing units | Threshold: ${thresholdMinutes}m | Updates before: ${thresholdDate.toISOString()}`);
 
     try {
         // Find users who are present today but haven't updated in X minutes
@@ -67,6 +68,9 @@ async function checkLaggards(thresholdMinutes: number) {
                 { lastUpdateAt: null }
             ]
         });
+
+        console.log(`📈 Active units in sector: ${await User.countDocuments({ isPresent: true })}`);
+        console.log(`📉 Delinquent units found: ${laggards.length}`);
 
         if (laggards.length === 0) {
             console.log('✅ All present units are reporting correctly.');
