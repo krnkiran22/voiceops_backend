@@ -22,4 +22,5 @@ export const config = {
 
     FRONTEND_URL: process.env.FRONTEND_URL || 'http://localhost:3000',
     TEMP_DIR: process.env.TEMP_DIR || path.join(process.cwd(), 'temp'),
+    MONITORING_GROUP_ID: process.env.MONITORING_GROUP_ID || '',
 };

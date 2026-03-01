@@ -9,6 +9,9 @@ export interface IUser extends Document {
     telegramUsername?: string;
     role: 'operator' | 'admin';
     trackedUntil?: Date;
+    isPresent: boolean;
+    lastPresentAt?: Date;
+    lastUpdateAt?: Date;
     createdAt: Date;
     updatedAt: Date;
 }
@@ -22,6 +25,9 @@ const UserSchema = new Schema<IUser>({
     telegramUsername: { type: String, default: null },
     role: { type: String, enum: ['operator', 'admin'], default: 'operator' },
     trackedUntil: { type: Date, default: null },
+    isPresent: { type: Boolean, default: false },
+    lastPresentAt: { type: Date, default: null },
+    lastUpdateAt: { type: Date, default: null },
 }, { timestamps: true });
 
 export default mongoose.models.User || mongoose.model<IUser>('User', UserSchema);

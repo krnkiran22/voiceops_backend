@@ -77,3 +77,30 @@ export const startTracking = asyncHandler(async (req: Request, res: Response) =>
 
     res.json({ success: true, trackedUntil: user.trackedUntil });
 });
+
+export const markPresent = asyncHandler(async (req: Request, res: Response) => {
+    const { telegramUserId } = req.body;
+    const user = await User.findOne({ telegramUserId });
+
+    if (!user) {
+        res.status(404);
+        throw new Error('User not found');
+    }
+
+    user.isPresent = true;
+    user.lastPresentAt = new Date();
+    user.lastUpdateAt = new Date(); // Start the 15m timer from now
+
+    // Also extend tracking if we still use that logic
+    user.trackedUntil = new Date(Date.now() + 14 * 60 * 60 * 1000); // 14 hours for the shift
+
+    await user.save();
+
+    res.json({ success: true, isPresent: user.isPresent });
+});
+
+export const updateLastSeen = asyncHandler(async (req: Request, res: Response) => {
+    const { telegramUserId } = req.body;
+    await User.findOneAndUpdate({ telegramUserId }, { lastUpdateAt: new Date() });
+    res.json({ success: true });
+});

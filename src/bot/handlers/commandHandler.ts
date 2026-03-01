@@ -45,13 +45,32 @@ export const handleLink = async (ctx: Context) => {
     }
 };
 
+export const handlePresent = async (ctx: Context) => {
+    try {
+        await apiClient.post('/api/users/mark-present', {
+            telegramUserId: String(ctx.from?.id),
+        });
+
+        const username = ctx.from?.username ? `@${ctx.from.username}` : ctx.from?.first_name;
+        await ctx.reply(`🫡 Signal Received, ${username}! You are marked **PRESENT** for today's operation.\n\nKeep the updates coming every 15 minutes to avoid the nagging bot!`, { parse_mode: 'Markdown' });
+    } catch (error: any) {
+        if (error.response?.status === 404) {
+            await ctx.reply("⚠️ Your Telegram is not linked. Please use /link <code> first.");
+        } else {
+            console.error('Error marking present:', error);
+            await ctx.reply("❌ Failed to register attendance. Please try again.");
+        }
+    }
+};
+
 export const handleHelp = async (ctx: Context) => {
     await ctx.reply(
-        "📖 *VoiceOps Help*\n\n" +
-        "/start - Welcome message\n" +
+        "📖 *VoiceOps Tactical Help*\n\n" +
+        "/start - Start/Reset tracking session\n" +
+        "/present - Check in for today's work (STRICT 15m/1h monitoring)\n" +
         "/link <code> - Link your Telegram account\n" +
         "/help - Show this help message\n\n" +
-        "Just send or forward a voice note or video message and I'll handle the rest!",
+        "Just send or forward a voice note, video, or tag me in a text and I'll record your intel!",
         { parse_mode: "Markdown" }
     );
 };

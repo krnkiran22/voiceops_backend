@@ -22,6 +22,10 @@ export const createUpdate = asyncHandler(async (req: Request, res: Response) => 
         throw new Error('Tracking session expired. Send /start to start a new 10-hour tracking session.');
     }
 
+    // Update activity timestamps
+    user.lastUpdateAt = new Date();
+    await user.save();
+
     const update = await Update.create({
         userId: user._id,
         telegramMessageId,
