@@ -31,9 +31,9 @@ let botInstance: Bot | null = null;
 export const initMonitoring = (bot: Bot) => {
     botInstance = bot;
 
-    // 1. Every 15 minutes: Check for laggards
-    cron.schedule('*/15 * * * *', async () => {
-        console.log('⏰ Running 15-minute Intelligence Audit...');
+    // 1. Every 5 minutes: Check for laggards (More aggressive nagging)
+    cron.schedule('*/5 * * * *', async () => {
+        console.log('⏰ Running Strategic Intelligence Audit...');
         checkLaggards(15);
     });
 

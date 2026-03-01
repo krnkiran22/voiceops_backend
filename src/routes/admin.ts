@@ -14,8 +14,8 @@ router.post('/trigger-nag', async (req, res) => {
         return res.status(401).json({ error: 'Unauthorized' });
     }
 
-    console.log('🔗 Manual audit triggered via API (Threshold: 0 minutes for testing)');
-    await checkLaggards(0);
+    console.log('🔗 Manual audit triggered via API (Threshold: 15 minutes)');
+    await checkLaggards(15);
     res.json({ success: true, message: 'Audit triggered. Check logs/Telegram.' });
 });
 
