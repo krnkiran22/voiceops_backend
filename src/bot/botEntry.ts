@@ -56,4 +56,6 @@ export const startBot = () => {
     // Start Bot
     console.log('VoiceOps Bot is starting...');
     bot.start();
+
+    return bot;
 };

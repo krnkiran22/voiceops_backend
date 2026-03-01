@@ -31,7 +31,7 @@ async function run() {
 
         const response = await axios.post(`${BACKEND_URL}${endpoint}`, {}, {
             headers: {
-                'x-api-key': BOT_API_KEY
+                'x-bot-api-key': BOT_API_KEY
             }
         });
 

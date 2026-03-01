@@ -43,6 +43,16 @@ app.use((err: any, req: express.Request, res: express.Response, next: express.Ne
 
 app.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);
-    startBot();
+    const bot = startBot();
     initKeepAlive();
+
+    // Graceful Shutdown
+    const shutdown = async () => {
+        console.log('🛑 Shutting down server and bot...');
+        await bot.stop();
+        process.exit(0);
+    };
+
+    process.on('SIGINT', shutdown);
+    process.on('SIGTERM', shutdown);
 });
