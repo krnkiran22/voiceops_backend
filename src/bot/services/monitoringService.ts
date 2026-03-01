@@ -57,17 +57,20 @@ export async function checkLaggards(thresholdMinutes: number) {
     }
 
     const thresholdDate = new Date(Date.now() - thresholdMinutes * 60 * 1000);
-    console.log(`🔍 Auditing units | Threshold: ${thresholdMinutes}m | Updates before: ${thresholdDate.toISOString()}`);
+    console.log(`🔍 Query Parameters | Threshold: ${thresholdMinutes}m | Updates before: ${thresholdDate.toISOString()}`);
+    console.log(`📊 DB Stats | Total Users: ${await User.countDocuments({})} | Present Today: ${await User.countDocuments({ isPresent: true })}`);
 
     try {
         // Find users who are present today but haven't updated in X minutes
-        const laggards = await User.find({
+        const query = {
             isPresent: true,
             $or: [
                 { lastUpdateAt: { $lt: thresholdDate } },
                 { lastUpdateAt: null }
             ]
-        });
+        };
+        console.log('🧪 Running Query:', JSON.stringify(query));
+        const laggards = await User.find(query);
 
         console.log(`📈 Active units in sector: ${await User.countDocuments({ isPresent: true })}`);
         console.log(`📉 Delinquent units found: ${laggards.length}`);
