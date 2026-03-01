@@ -2,13 +2,15 @@ import axios from 'axios';
 import dotenv from 'dotenv';
 import path from 'path';
 
-// Load environment variables
-dotenv.config({ path: path.join(__dirname, '../.env') });
+// Load environment variables from the root .env file
+dotenv.config({ path: path.join(__dirname, '../../.env') });
 
 const BOT_API_KEY = process.env.BOT_API_KEY;
 const BACKEND_URL = process.env.BACKEND_API_URL || 'http://localhost:4000';
 
 async function triggerManualNag() {
+    console.log(`🔗 Target URL: ${BACKEND_URL}`);
+    console.log(`🔑 API Key Status: ${BOT_API_KEY ? 'Present' : 'MISSING'}`);
     console.log('🚀 TACTICAL TRIGGER: Initiating manual nag check...');
 
     try {
