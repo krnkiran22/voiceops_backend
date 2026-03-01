@@ -28,12 +28,13 @@ class AIClientManager {
         }
 
         let lastError: any;
-        const startIndex = this.currentKeyIndex;
 
-        // Try each client starting from the current index
+        // Try rotating through clients
         for (let i = 0; i < this.clients.length; i++) {
-            const index = (startIndex + i) % this.clients.length;
-            this.currentKeyIndex = index;
+            const index = this.currentKeyIndex;
+
+            // Increment index for the NEXT request immediately to ensure strict rotation
+            this.currentKeyIndex = (this.currentKeyIndex + 1) % this.clients.length;
 
             try {
                 console.log(`🤖 AI Request [index ${index}]: Starting... (Model: ${config.AI_MODEL})`);
