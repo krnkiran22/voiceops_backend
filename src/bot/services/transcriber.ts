@@ -4,10 +4,8 @@ import { config } from '../config';
 
 export async function transcribeAudio(filePath: string): Promise<string> {
     return await aiManager.execute(async (client) => {
-        const isGroq = client.apiKey.startsWith('gsk_');
-        const model = isGroq ? 'whisper-large-v3' : 'whisper-1';
-
-        console.log(`🎙️ Transcribing with ${isGroq ? 'Groq' : 'OpenAI'} (${model})...`);
+        const model = config.AI_TRANSCRIPTION_MODEL;
+        console.log(`🎙️ Transcribing with ${config.AI_PROVIDER.toUpperCase()} (${model})...`);
 
         const response = await client.audio.transcriptions.create({
             model: model,

@@ -6,13 +6,20 @@ class AIClientManager {
     private currentKeyIndex: number = 0;
 
     constructor() {
-        this.clients = config.AI_API_KEYS.map(key => {
-            const isGroq = key.startsWith('gsk_');
-            return new OpenAI({
-                apiKey: key,
-                baseURL: isGroq ? 'https://api.groq.com/openai/v1' : undefined,
+        if (config.AI_PROVIDER === 'ollama') {
+            this.clients = [new OpenAI({
+                apiKey: 'ollama', // Dummy key
+                baseURL: config.OLLAMA_BASE_URL,
+            })];
+        } else {
+            this.clients = config.AI_API_KEYS.map(key => {
+                const baseURL = config.AI_BASE_URL || (key.startsWith('gsk_') ? 'https://api.groq.com/openai/v1' : undefined);
+                return new OpenAI({
+                    apiKey: key,
+                    baseURL: baseURL,
+                });
             });
-        });
+        }
     }
 
     async execute<T>(fn: (client: OpenAI) => Promise<T>): Promise<T> {

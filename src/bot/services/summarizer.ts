@@ -36,10 +36,8 @@ Return ONLY a valid JSON object:
 export async function summarize(transcript: string): Promise<{ summary: string; topic: string }> {
     try {
         return await aiManager.execute(async (client) => {
-            const isGroq = client.apiKey.startsWith('gsk_');
-            const model = isGroq ? 'llama-3.3-70b-versatile' : 'gpt-4o';
-
-            console.log(`🧠 Summarizing with ${isGroq ? 'Groq' : 'OpenAI'} (${model})...`);
+            const model = config.AI_MODEL;
+            console.log(`🧠 Processing with ${config.AI_PROVIDER.toUpperCase()} (${model})...`);
 
             const response = await client.chat.completions.create({
                 model: model,
