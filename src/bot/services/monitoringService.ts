@@ -51,14 +51,27 @@ export const initMonitoring = (bot: Bot) => {
 };
 
 export async function checkLaggards(thresholdMinutes: number) {
+    console.log('!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!');
+    console.log('📡 AUDITOR: STARTING INTELLIGENCE SCAN...');
+    console.log('!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!');
+
     if (!botInstance || !config.MONITORING_GROUP_ID) {
-        console.warn(`⚠️ Monitoring skipped: BotInstance: ${!!botInstance}, GroupID: ${config.MONITORING_GROUP_ID}`);
+        console.error('❌ AUDITOR FAILURE: Bot or Group ID missing!');
+        console.log(`   - Bot Instance: ${!!botInstance}`);
+        console.log(`   - Group ID: ${config.MONITORING_GROUP_ID}`);
         return;
     }
 
+    // TEST HEARTBEAT: Confirm bot can speak to the group
+    if (thresholdMinutes === 0) {
+        console.log('💓 Sending Test Heartbeat to group...');
+        await botInstance.api.sendMessage(config.MONITORING_GROUP_ID, "📡 **AUDITOR HEARTBEAT**: Manual trigger received. System is online.", { parse_mode: 'Markdown' }).catch(err => {
+            console.error('❌ Heartbeat Failed:', err.message);
+        });
+    }
+
     const thresholdDate = new Date(Date.now() - thresholdMinutes * 60 * 1000);
-    console.log(`🔍 Query Parameters | Threshold: ${thresholdMinutes}m | Updates before: ${thresholdDate.toISOString()}`);
-    console.log(`📊 DB Stats | Total Users: ${await User.countDocuments({})} | Present Today: ${await User.countDocuments({ isPresent: true })}`);
+    console.log(`🔍 LOGIC: Looking for units with no signal since ${thresholdDate.toISOString()}`);
 
     try {
         // Find users who are present today but haven't updated in X minutes
