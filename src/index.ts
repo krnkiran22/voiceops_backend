@@ -7,11 +7,15 @@ import userRoutes from './routes/users';
 import updateRoutes from './routes/updates';
 import adminRoutes from './routes/admin';
 import { startBot } from './bot/botEntry';
+import { initKeepAlive } from './lib/keepAlive';
 
 dotenv.config();
 
 const app = express();
 const PORT = process.env.PORT || 4000;
+
+// Health Check for Keep-Alive
+app.get('/health', (req, res) => res.status(200).send('UP'));
 
 // Connect to Database
 connectDB();
@@ -40,4 +44,5 @@ app.use((err: any, req: express.Request, res: express.Response, next: express.Ne
 app.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);
     startBot();
+    initKeepAlive();
 });
