@@ -56,14 +56,6 @@ async function checkLaggards(thresholdMinutes: number) {
         return;
     }
 
-    // BREAK TIME PROTECTION: Skip 15-minute nags during Lunch (13:00 - 14:00)
-    const now = new Date();
-    const hours = now.getHours();
-    if (thresholdMinutes === 15 && hours === 13) {
-        console.log('🍽️ Lunch Break detected. Monitoring paused for 15m audit.');
-        return;
-    }
-
     const thresholdDate = new Date(Date.now() - thresholdMinutes * 60 * 1000);
 
     try {
