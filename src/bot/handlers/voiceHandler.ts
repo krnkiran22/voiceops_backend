@@ -98,12 +98,18 @@ export const handleVoice = async (ctx: Context) => {
             }
         }
 
-    } catch (error) {
+    } catch (error: any) {
         console.error('Voice processing error:', error);
+        let errorMsg = "❌ Failed to process voice note. Please check your AI API keys.";
+
+        if (error.description?.includes('file is too big')) {
+            errorMsg = "❌ Voice file is too large! Telegram bots have a 20MB limit.";
+        }
+
         await ctx.api.editMessageText(
             ctx.chat!.id,
             processingMsg.message_id,
-            "❌ Failed to process voice note. Please check your AI API keys."
+            errorMsg
         );
     } finally {
         // Cleanup

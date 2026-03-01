@@ -100,12 +100,18 @@ export const handleVideo = async (ctx: Context) => {
             }
         }
 
-    } catch (error) {
+    } catch (error: any) {
         console.error('Video processing error:', error);
+        let errorMsg = "❌ Failed to process video (Transcription/AI failed). Please check your API keys.";
+
+        if (error.description?.includes('file is too big')) {
+            errorMsg = "❌ Video file is too large! Telegram bots have a 20MB limit. Please send a shorter or compressed video.";
+        }
+
         await ctx.api.editMessageText(
             ctx.chat!.id,
             processingMsg.message_id,
-            "❌ Failed to process video (Transcription/AI failed). Please check your API keys."
+            errorMsg
         );
     } finally {
         // Cleanup
