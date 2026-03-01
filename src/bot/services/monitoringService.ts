@@ -2,7 +2,9 @@ import cron from 'node-cron';
 import User from '../../models/User';
 import { Bot } from 'grammy';
 import { config } from '../config';
+import { formatInTimeZone } from 'date-fns-tz';
 
+const IST_TZ = 'Asia/Kolkata';
 const JOKES = [
     "Are you taking a nap or did you join a monastery? We need updates! 🧘‍♂️",
     "I've seen slower snails in a salt factory. Where's the intel? 🐌",
@@ -31,40 +33,41 @@ let botInstance: Bot | null = null;
 export const initMonitoring = (bot: Bot) => {
     botInstance = bot;
 
-    // 1. Every 5 minutes: Check for laggards (More aggressive nagging)
+    // 1. Every 5 minutes: Strategic Intelligence Audit (IST-Ready)
     cron.schedule('*/5 * * * *', async () => {
-        console.log('⏰ Running Strategic Intelligence Audit...');
+        console.log(`⏰ [${formatInTimeZone(new Date(), IST_TZ, 'HH:mm:ss')}] Running Strategic Intelligence Audit...`);
         checkLaggards(15);
     });
 
-    // 2. Every Hour: Check for hour-long laggards (stricter nag)
+    // 2. Every Hour: Strict Hourly Signal Audit
     cron.schedule('0 * * * *', async () => {
-        console.log('⏰ Running Hourly Intelligence Audit...');
+        console.log(`⏰ [${formatInTimeZone(new Date(), IST_TZ, 'HH:mm:ss')}] Running Hourly Intelligence Audit...`);
         checkLaggards(60);
     });
 
-    // 3. Daily at Midnight: Reset "Present" status
-    cron.schedule('0 0 * * *', async () => {
-        console.log('🌅 Resetting daily attendance...');
+    // 3. Daily at Midnight IST: Reset Operational Attendance
+    // IST 00:00 is UTC 18:30 (Previous Day)
+    cron.schedule('30 18 * * *', async () => {
+        console.log(`🌅 [${formatInTimeZone(new Date(), IST_TZ, 'HH:mm:ss')}] Resetting daily attendance for new shift...`);
         await User.updateMany({}, { isPresent: false });
     });
 };
 
 export async function checkLaggards(thresholdMinutes: number) {
     console.log('!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!');
-    console.log('📡 AUDITOR (V5): STARTING INTELLIGENCE SCAN...');
+    console.log('📡 AUDITOR (IST-OPERATIONAL): STARTING SCAN...');
     console.log('!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!');
 
     if (!botInstance || !config.MONITORING_GROUP_ID) {
-        console.error('❌ AUDITOR FAILURE (V5): Bot or Group ID missing!');
+        console.error('❌ AUDITOR FAILURE: Bot or Group ID missing!');
         return;
     }
 
     const now = new Date();
     const thresholdDate = new Date(now.getTime() - thresholdMinutes * 60 * 1000);
 
-    console.log(`⏱️ SCAN TIME: ${now.toISOString()}`);
-    console.log(`🔍 THRESHOLD (${thresholdMinutes}m): Updates before ${thresholdDate.toISOString()} are laggards.`);
+    console.log(`⏱️ SCAN TIME (IST): ${formatInTimeZone(now, IST_TZ, 'yyyy-MM-dd HH:mm:ss')} IST`);
+    console.log(`🔍 THRESHOLD (${thresholdMinutes}m): Updates before ${formatInTimeZone(thresholdDate, IST_TZ, 'HH:mm:ss')} are laggards.`);
 
     try {
         const activeUsers = await User.find({ isPresent: true });
@@ -73,10 +76,13 @@ export async function checkLaggards(thresholdMinutes: number) {
         const laggards = [];
 
         for (const u of activeUsers) {
-            const lastUpdate = u.lastUpdateAt ? u.lastUpdateAt.toISOString() : 'NEVER';
+            const lastUpdateIST = u.lastUpdateAt
+                ? formatInTimeZone(u.lastUpdateAt, IST_TZ, 'HH:mm:ss')
+                : 'NEVER';
+
             const isLaggard = !u.lastUpdateAt || u.lastUpdateAt < thresholdDate;
 
-            console.log(`👤 UNIT: ${u.name} | LAST SIGNAL: ${lastUpdate} | LAGGARD: ${isLaggard}`);
+            console.log(`👤 UNIT: ${u.name} | LAST SIGNAL: ${lastUpdateIST} IST | LAGGARD: ${isLaggard}`);
 
             if (isLaggard) {
                 laggards.push(u);
@@ -97,7 +103,7 @@ export async function checkLaggards(thresholdMinutes: number) {
         const joke = JOKES[Math.floor(Math.random() * JOKES.length)];
         const message = `⚠️ <b>INTEL GAP DETECTED</b>\n\nAttention ${mentions}:\n\n<i>"${joke}"</i>\n\nStatus: overdue by ${thresholdMinutes}m. Report in immediately! 🚨`;
 
-        console.log(`📢 DISPATCHING NAG: To ${laggards.length} units...`);
+        console.log(`📢 DISPATCHING NAG: To ${laggards.length} delinquent units...`);
 
         await botInstance.api.sendMessage(config.MONITORING_GROUP_ID, message, { parse_mode: 'HTML' }).then(() => {
             console.log('✅ DISPATCH SUCCESSFUL.');
